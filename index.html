@@ -3,225 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interface SAV Fnac - Système QR Code</title>
+    <title>Système de Gestion SAV - Fnac Digital</title>
     
     <style>
+        /* CONFIGURATION DES VARIABLES (Design System) */
         :root {
             --fnac-yellow: #EBC800;
             --fnac-black: #1a1a1a;
             --fnac-white: #ffffff;
-            --success-green: #27ae60;
-            --gray-light: #f4f4f4;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --gray-soft: #f8f9fa;
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
+        /* RESET & BASE */
+        * { box-sizing: border-box; }
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: var(--gray-light);
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: #eef1f4;
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            color: var(--fnac-black);
         }
 
-        .app-container {
+        /* CONTENEUR PRINCIPAL AVEC ANIMATION D'ENTRÉE */
+        .main-card {
             background: var(--fnac-white);
-            width: 100%;
-            max-width: 500px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            width: 95%;
+            max-width: 480px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
             overflow: hidden;
-            border-top: 8px solid var(--fnac-yellow);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         header {
             background: var(--fnac-black);
-            color: var(--fnac-yellow);
-            padding: 25px;
+            padding: 30px 20px;
             text-align: center;
+            position: relative;
         }
 
-        header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
-        header p { margin: 5px 0 0; color: white; font-size: 14px; opacity: 0.8; }
-
-        .content { padding: 30px; }
-
-        .step-indicator {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
+        .logo-placeholder {
+            font-weight: 900;
+            font-size: 28px;
+            color: var(--fnac-yellow);
+            letter-spacing: -1px;
         }
 
-        .step {
-            font-size: 12px;
-            color: #bbb;
-            font-weight: bold;
-            text-transform: uppercase;
+        /* BARRE DE PROGRESSION */
+        .progress-container {
+            height: 4px;
+            background: #333;
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            left: 0;
         }
 
-        .step.active { color: var(--fnac-black); border-bottom: 2px solid var(--fnac-yellow); }
-
-        .form-group { margin-bottom: 20px; }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #333;
+        #progress-bar {
+            height: 100%;
+            background: var(--fnac-yellow);
+            width: 33%;
+            transition: var(--transition);
         }
+
+        .content { padding: 35px; }
+
+        /* TYPOGRAPHIE ET FORMULAIRE */
+        h2 { font-size: 20px; margin-bottom: 10px; font-weight: 800; }
+        p.subtitle { color: #666; font-size: 14px; margin-bottom: 30px; }
+
+        .form-group { margin-bottom: 22px; position: relative; }
+        label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; color: #888; }
 
         input, select {
             width: 100%;
-            padding: 14px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
             font-size: 16px;
-            box-sizing: border-box;
-            transition: 0.3s;
+            transition: var(--transition);
+            background: var(--gray-soft);
         }
 
         input:focus, select:focus {
             border-color: var(--fnac-yellow);
             outline: none;
-            background: #fffdf0;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(235, 200, 0, 0.15);
         }
 
-        .btn-main {
+        /* BOUTON DYNAMIQUE */
+        .btn-cta {
             background: var(--fnac-black);
-            color: var(--fnac-white);
+            color: white;
             width: 100%;
             padding: 18px;
             border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
             cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
+            transition: var(--transition);
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
 
-        .btn-main:hover {
-            background: #333;
-            transform: translateY(-2px);
+        .btn-cta:hover { background: #333; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .btn-cta:active { transform: translateY(-1px); }
+
+        /* ECRAN DE SUCCÈS (TICKET) */
+        #success-view { display: none; text-align: center; }
+
+        .ticket {
+            background: #fffdf0;
+            border: 2px solid var(--fnac-yellow);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 25px 0;
+            position: relative;
         }
 
-        /* Message de succès caché au début */
-        #success-screen {
-            display: none;
-            text-align: center;
-            padding: 40px 20px;
+        .ticket::before, .ticket::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--fnac-white);
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
         }
+        .ticket::before { left: -12px; }
+        .ticket::after { right: -12px; }
 
-        .check-icon {
-            font-size: 60px;
-            color: var(--success-green);
-            margin-bottom: 20px;
-        }
+        .ticket-number { font-size: 48px; font-weight: 900; letter-spacing: 4px; margin: 10px 0; color: var(--fnac-black); }
 
-        .ticket-box {
-            background: #f9f9f9;
-            border: 2px dashed #ccc;
-            padding: 20px;
-            margin: 20px 0;
+        .badge-impact {
+            background: #e1f5fe;
+            color: #0288d1;
+            padding: 12px;
             border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.4;
+            display: inline-block;
+            margin-top: 15px;
         }
 
-        .info-impact {
-            background: #e8f4fd;
-            color: #2980b9;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-top: 20px;
+        /* LOADER ANIMATION */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--fnac-yellow);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
         }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="main-card">
         <header>
-            <h1>FNAC SAV</h1>
-            <p>File d'attente intelligente via QR Code</p>
+            <div class="logo-placeholder">FNAC</div>
+            <div class="progress-container"><div id="progress-bar"></div></div>
         </header>
 
         <div class="content">
-            <div id="booking-form">
-                <div class="step-indicator">
-                    <span class="step active">1. Motif</span>
-                    <span class="step">2. Créneau</span>
-                    <span class="step">3. Confirmation</span>
+            <div id="form-view">
+                <h2>Planifiez votre passage</h2>
+                <p class="subtitle">Évitez les files d'attente longues. Solution digitale SAV.</p>
+                
+                <div class="form-group">
+                    <label>Nom complet</label>
+                    <input type="text" id="nameInput" placeholder="Ex: Lucas Bernard" oninput="updateProgress()">
                 </div>
 
                 <div class="form-group">
-                    <label>Votre Nom complet</label>
-                    <input type="text" id="userName" placeholder="Ex: Thomas Durant" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Motif de votre venue</label>
-                    <select id="reason">
-                        <option value="reparation">🔧 Réparation / Panne produit</option>
-                        <option value="retrait">📦 Retrait de commande (Click & Collect)</option>
-                        <option value="echange">🔄 Échange ou Retour</option>
-                        <option value="SAV">🛠️ Expertise technique SAV</option>
+                    <label>Nature du problème (Solution)</label>
+                    <select id="reasonInput" onchange="updateProgress()">
+                        <option value="">Sélectionnez un motif...</option>
+                        <option value="REPARATION">🔧 Réparation immédiate</option>
+                        <option value="RETOUR">🔄 Retour / Échange produit</option>
+                        <option value="COMMANDE">📦 Retrait commande (Click & Collect)</option>
+                        <option value="EXPERTISE">🖥️ Diagnostic technique expert</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label>Heure de passage souhaitée</label>
-                    <input type="time" id="timeSlot" min="10:00" max="19:00" required>
+                    <label>Heure de rendez-vous (Impact)</label>
+                    <input type="time" id="timeInput" oninput="updateProgress()">
                 </div>
 
-                <button class="btn-main" onclick="processBooking()">GÉNÉRER MON TICKET</button>
+                <button class="btn-cta" onclick="submitReservation()">
+                    <span id="btn-text">GÉNÉRER MON PASS SAV</span>
+                    <div id="btn-loader" class="loader"></div>
+                </button>
             </div>
 
-            <div id="success-screen">
-                <div class="check-icon">✓</div>
-                <h2>Rendez-vous validé !</h2>
-                <p>Merci <span id="display-name" style="font-weight: bold;"></span>.</p>
-                
-                <div class="ticket-box">
-                    <p style="margin:0; font-size: 12px; color: #666;">NUMÉRO DE PASSAGE</p>
-                    <h3 id="ticket-id" style="font-size: 32px; margin: 10px 0; letter-spacing: 5px;">---</h3>
-                    <p id="display-time" style="font-weight: bold; color: var(--fnac-black);"></p>
+            <div id="success-view">
+                <div style="font-size: 50px;">✅</div>
+                <h2 style="margin-top: 10px;">Votre Pass est prêt !</h2>
+                <p style="color: #666;">Présentez ce code à l'accueil SAV.</p>
+
+                <div class="ticket">
+                    <div style="font-size: 12px; color: #888; font-weight: bold;">VOTRE NUMÉRO DE PASSAGE</div>
+                    <div class="ticket-number" id="final-ticket">A-24</div>
+                    <div id="final-info" style="font-weight: 700; color: #333;">Aujourd'hui à 14:30</div>
                 </div>
 
-                <div class="info-impact">
-                    <strong>Impact positif :</strong> En utilisant ce QR Code, vous réduisez la charge du personnel et votre temps d'attente est estimé à <strong>moins de 4 minutes</strong>.
+                <div class="badge-impact">
+                    🚀 <strong>Impact :</strong> Grâce à votre réservation, vous passez en priorité. Attente estimée : <strong>~3 min</strong> au lieu de 25 min.
                 </div>
-                
-                <button class="btn-main" style="background:#777;" onclick="location.reload()">ANNULER / RETOUR</button>
+
+                <button class="btn-cta" style="background: #eee; color: #666; margin-top: 25px;" onclick="window.location.reload()">
+                    NOUVELLE RÉSERVATION
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        function processBooking() {
-            const name = document.getElementById('userName').value;
-            const time = document.getElementById('timeSlot').value;
-            const reason = document.getElementById('reason').value;
+        // 1. Gestion de la barre de progression en temps réel
+        function updateProgress() {
+            const name = document.getElementById('nameInput').value;
+            const reason = document.getElementById('reasonInput').value;
+            const time = document.getElementById('timeInput').value;
+            
+            let progress = 33;
+            if (name) progress += 23;
+            if (reason) progress += 22;
+            if (time) progress = 100;
+            
+            document.getElementById('progress-bar').style.width = progress + "%";
+        }
 
-            if (name === "" || time === "") {
-                alert("Veuillez remplir tous les champs avant de valider.");
+        // 2. Simulation d'envoi de données (Backend-like)
+        function submitReservation() {
+            const name = document.getElementById('nameInput').value;
+            const time = document.getElementById('timeInput').value;
+
+            if (!name || !time) {
+                alert("Veuillez remplir tous les champs pour optimiser l'impact SAV.");
                 return;
             }
 
-            // Simulation d'une logique de calcul de ticket
-            const randomID = "FNAC-" + Math.floor(Math.random() * 9000 + 1000);
-            
-            // Masquer le formulaire, afficher le succès
-            document.getElementById('booking-form').style.display = 'none';
-            document.getElementById('success-screen').style.display = 'block';
+            // Animation du bouton (UI/UX)
+            document.getElementById('btn-text').innerText = "Traitement...";
+            document.getElementById('btn-loader').style.display = "block";
 
-            // Injection des données dynamiques
-            document.getElementById('display-name').innerText = name;
-            document.getElementById('display-time').innerText = "Présentez-vous à " + time;
-            document.getElementById('ticket-id').innerText = randomID;
-
-            // Console log pour prouver la logique de dev
-            console.log("Réservation enregistrée pour:", name, "Motif:", reason, "Ticket:", randomID);
+            // Délai simulé de 1.5s pour faire "pro"
+            setTimeout(() => {
+                const ticketID = "FNAC-" + Math.floor(Math.random() * 899 + 100);
+                
+                // Bascule des vues
+                document.getElementById('form-view').style.display = 'none';
+                document.getElementById('success-view').style.display = 'block';
+                
+                // Mise à jour des infos finales
+                document.getElementById('final-ticket').innerText = ticketID;
+                document.getElementById('final-info').innerText = "Rdv pour " + name + " à " + time;
+                
+                console.log("LOG [SUCCESS]: Ticket " + ticketID + " généré avec succès.");
+            }, 1500);
         }
     </script>
 </body>
 </html>
+
+
 
